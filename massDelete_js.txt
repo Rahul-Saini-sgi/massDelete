@@ -1,0 +1,108 @@
+import {LightningElement, track, wire} from 'lwc';
+import getProjects from '@salesforce/apex/massDeleteController.getProjects';
+import delSelectedCons from '@salesforce/apex/massDeleteController.deleteProjects';
+import {ShowToastEvent} from 'lightning/platformShowToastEvent';
+import {refreshApex} from '@salesforce/apex';
+
+// datatable columns
+const columns = [
+    {
+        label: 'Project Name',
+        fieldName: 'Project_Name__c'
+    }, {
+        label: 'Status',
+        fieldName: 'Status__c',
+        type: 'picklist'
+    }, {
+        label: 'Project Type',
+        fieldName: 'Project_Type__c',
+        type: 'picklist'
+    }, {
+        label: 'Priority',
+        fieldName: 'Priority__c',
+        type: 'picklist'
+    }
+];
+
+export default class DeleteRowsInDatatableLWC extends LightningElement {
+    // reactive variable
+    @track data;
+    @track columns = columns;
+    @track buttonLabel = 'Delete';
+    @track isTrue = false;
+    @track recordsCount = 0;
+
+    // non-reactive variables
+    selectedRecords = [];
+    refreshTable;
+    error;
+
+    // retrieving the data using wire service
+    @wire(getProjects)
+    projects(result) {
+        this.refreshTable = result;
+        if (result.data) {
+            this.data = result.data;
+            this.error = undefined;
+
+        } else if (result.error) {
+            this.error = result.error;
+            this.data = undefined;
+        }
+    }
+
+
+    // Getting selected rows 
+    getSelectedRecords(event) {
+        const selectedRows = event.detail.selectedRows;
+        this.recordsCount = event.detail.selectedRows.length;
+        let conIds = new Set();
+        for (let i = 0; i < selectedRows.length; i++) {
+            conIds.add(selectedRows[i].Id);
+        }
+        this.selectedRecords = Array.from(conIds);
+        window.console.log('selectedRecords ====> ' +this.selectedRecords);
+    }
+
+
+    // delete records process function
+    deleteAccounts() {
+        if (this.selectedRecords) {
+            this.buttonLabel = 'PENDING...';
+            this.isTrue = true;
+            this.deleteCons();
+        }
+    }
+    deleteCons() {
+        delSelectedCons({lstConIds: this.selectedRecords})
+        .then(result => {
+            window.console.log('result ====> ' + result);
+
+            this.buttonLabel = 'DELETE RECORD';
+            this.isTrue = false;
+            // showing success message
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: 'Success!!', 
+                    message: this.recordsCount + ' Selected records are deleted.', 
+                    variant: 'success'
+                }),
+            );
+            // Clearing selected row indexs 
+            this.template.querySelector('lightning-datatable').selectedRows = [];
+            this.recordsCount = 0;
+            return refreshApex(this.refreshTable);
+        })
+        .catch(error => {
+            window.console.log(error);
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: 'Error while getting Records', 
+                    message: error.message, 
+                    variant: 'error'
+                }),
+            );
+        });
+    }  
+
+}
