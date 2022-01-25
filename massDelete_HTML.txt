@@ -1,0 +1,24 @@
+<template>
+    <lightning-card title="Project Record View" icon-name="standard:action_list_component">
+       <div style="width: auto;">
+           <template if:true={data}>
+                   <div class="slds-grid slds-gutters">
+                           <div class="slds-col">
+                             <span><p style="margin-left: 8%">Selected Records: <b>{recordsCount}</b></p></span>
+                           </div>
+                           <div class="slds-col">
+                               <span>                    
+                                   <lightning-button label={buttonLabel}
+                                        icon-name="utility:delete" disabled={isTrue}
+                                        variant="destructive" onclick={deleteAccounts}
+                                        style="margin-left: 60%"></lightning-button>
+                               </span>
+                           </div>
+                        </div></br>
+                   <lightning-datatable data={data}
+                        columns={columns} key-field="id" onrowselection={getSelectedRecords}>
+                    </lightning-datatable>
+           </template>
+       </div>
+   </lightning-card>   
+</template>
