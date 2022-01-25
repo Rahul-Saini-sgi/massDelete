@@ -1,0 +1,24 @@
+public inherited sharing class massDeleteController {
+
+    @AuraEnabled(Cacheable = true)
+    public static List<Kloudone__c> getProjects(){
+        return [ SELECT Name, Project_Name__c, Status__c, Project_Type__c, Priority__c FROM Kloudone__c ORDER BY Name];
+    }
+    
+    @AuraEnabled
+    public static void deleteProjects(list<Id> lstConIds){
+        try {
+            list<Kloudone__c> lstConsToDelete = new list<Kloudone__c>();
+            System.debug('lstConIds ====> '+lstConIds);
+            for(Id idCon : lstConIds) {
+                lstConsToDelete.add(new Kloudone__c(Id = idCon));
+            }
+            if(!lstConsToDelete.isEmpty()) {
+                delete lstConsToDelete;
+            }
+        }
+        catch(Exception ex) {
+            throw new AuraHandledException(ex.getMessage());
+        }
+    }
+}
