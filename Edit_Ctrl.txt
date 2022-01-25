@@ -1,0 +1,11 @@
+public with sharing class editButtonCtrl {
+
+        @AuraEnabled(Cacheable = true)
+        public static List<Kloudone__c> getContacts() {
+            return [SELECT Id, Project_Name__c, Status__c, Project_Type__c, Priority__c 
+                    FROM Kloudone__c 
+                    WHERE Project_Name__c != null 
+                    AND Project_Type__c != null 
+                    ORDER BY CreatedDate DESC NULLS LAST limit 20];
+        }
+    }
